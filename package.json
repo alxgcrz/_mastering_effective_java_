@@ -1,21 +1,21 @@
 {
-  "name": "learning_effective_java",
+  "name": "mastering_effective_java",
   "version": "1.0.0",
-  "description": "Learning Effective Java",
+  "description": "Mastering 'Effective Java'",
   "private": true,
   "main": "README.md",
   "author": "@alxgcrz",
   "license": "CC-BY-4.0",
-  "homepage": "https://alxgcrz.com/effective_java.html",
+  "homepage": "https://alxgcrz.com/mastering_effective_java.html",
   "scripts": {
     "pandoc:create": "pandoc -d custom",
     "pandoc:copy": "copy *.html %npm_config_html%",
     "pdf:create": "mdpdf README.md README.pdf",
     "pdf:copy": "copy README.pdf %npm_config_pdf%",
-    "live": "live-server java.html"
+    "live": "live-server mastering_effective_java.html"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alxgcrz/_learning_effective_java_.git"
+    "url": "https://github.com/alxgcrz/_mastering_effective_java_.git"
   }
 }
