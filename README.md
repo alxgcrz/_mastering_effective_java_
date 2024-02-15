@@ -1,4 +1,24 @@
-# Effective Java
+# Mastering 'Effective Java'
+
+... EN DESARROLLO ...
+
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="https://alxgcrz.com" target="_blank">
+    <img src="https://alxgcrz.com/assets/asset_03_v1.png" alt="En desarrollo" title="En desarrollo" width="40%">
+  </a>
+</p>
+<!-- markdownlint-enable MD033 -->
+
+## Introducción
+
+**"Effective Java"** es un influyente libro escrito por **Joshua Bloch**, un reconocido ingeniero de software que ha desempeñado un papel fundamental en el desarrollo de la plataforma Java. Publicado por primera vez en **2001** y posteriormente actualizado para reflejar las versiones más recientes del lenguaje, "Effective Java" se ha convertido en un recurso invaluable para desarrolladores Java de todos los niveles de experiencia.
+
+Este libro proporciona una serie de **prácticas recomendadas** y **patrones de diseño** que ayudan a los programadores a escribir código Java más robusto, eficiente y fácil de mantener. A través de su enfoque práctico y con ejemplos claros, Bloch aborda diversas áreas, desde el manejo de objetos y la concurrencia hasta la gestión de excepciones y la creación de clases y métodos.
+
+"Effective Java" no solo se centra en la sintaxis del lenguaje, sino que también aborda cuestiones más profundas relacionadas con la calidad del código y la toma de decisiones de diseño. Este libro se ha convertido en un recurso esencial para aquellos que buscan mejorar sus habilidades de programación en Java y construir software más eficiente y confiable.
+
+> Introducción generada por ChatGPT
 
 ## Creating and Destroying Objects
 
