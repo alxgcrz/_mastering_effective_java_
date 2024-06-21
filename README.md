@@ -26,7 +26,7 @@ Este capítulo trata de la creación y destrucción de objetos: cuándo y cómo 
 
 ### Item 1: Consider static factory methods instead of constructors
 
-La forma tradicional de que una clase permita a un cliente obtener una instancia es proporcionar un constructor público. Pero hay otra técnica y es proveer un método público _'static factory'_ que es simplemente un **método estático que retorna una instancia** de la clase.
+La forma tradicional de que una clase permita a un cliente obtener una instancia es proporcionar un constructor público. Pero hay otra técnica y es proveer un método público estático que es simplemente un **método estático que retorna una instancia de la clase**.
 
 ```java
 // Retorna una instancia de Boolean usando el parámetro de tipo boolean
@@ -35,71 +35,73 @@ public static Boolean valueOf(boolean b) {
 }
 ```
 
-Hay que tener en cuenta que _'static factory method'_ no es lo mismo que el patrón **_'Factory Method'_** de los patrones de diseño _"Design Patterns: Elements of Reusable Object-Oriented Software"_.
+Hay que tener en cuenta que este concepto de **_'static factory method'_** no es lo mismo que el patrón **_'Factory Method'_** de los patrones de diseño _"Design Patterns: Elements of Reusable Object-Oriented Software"_.
 
 No es incompatible que una clase suministre _'static factory methods'_ además de constructores públicos.
 
-El uso de estos métodos tiene ventajas:
+El uso de estos métodos estáticos como factoría tiene ventajas:
 
-* **Una ventaja de los _'static factory methods'_ es que, a diferencia de los constructores, tienen nombres**. Podemos elegir nombres que sean mucho más descriptivos que los constructores.
+* Una ventaja es que, a diferencia de los constructores, estos **métodos tienen nombres**. Podemos elegir nombres que sean mucho más descriptivos que los constructores.
 
-* **Una segunda ventaja es que, a diferencia de los constructores, no tienen que crear un nuevo objeto cada vez que se les invoca.** Esto permite clases inmutables que retornen instancias ya creadas, mejorando el rendimiento ya que podemos evitar la creación de nuevos objetos.
+* Una segunda ventaja es que, a diferencia de los constructores, **no tienen que crear un nuevo objeto cada vez que se les invoca**. Esto permite clases inmutables que retornen instancias ya creadas, mejorando el rendimiento ya que podemos evitar la creación de nuevos objetos.
 
-* **Una tercera ventaja es que, a diferencia de los constructores, estos métodos pueden devolver un objeto de cualquier subtipo de su tipo de devolución.** Esto da una gran flexibilidad para elegir la clase del objeto devuelto.
+* Una tercera ventaja es que, a diferencia de los constructores, estos métodos **pueden devolver un objeto de cualquier subtipo de su tipo de devolución**. Esto da una gran flexibilidad para elegir la clase del objeto devuelto.
 
-* **Una cuarta ventaja de las fábricas estáticas es que la clase del objeto devuelto puede variar de una llamada a otra en función de los parámetros de entrada.** Se permite cualquier subtipo del tipo de retorno declarado. La clase del objeto devuelto también puede variar de una liberación a otra.
+* Una cuarta ventaja de las fábricas estáticas es que **la clase del objeto devuelto puede variar de una llamada a otra en función de los parámetros de entrada**. Se permite cualquier subtipo del tipo de retorno declarado. La clase del objeto devuelto también puede variar de una liberación a otra.
 
-* **Una quinta ventaja de las fábricas estáticas es que la clase del objeto devuelto no necesita existir cuando se escribe la clase que contiene el método.**
+* Una quinta ventaja de las fábricas estáticas es que **la clase del objeto devuelto no necesita existir cuando se escribe la clase que contiene el método**.
 
 Como inconvenientes destacar:
 
-* **La principal limitación de proporcionar sólo métodos estáticos de fábrica es que las clases sin constructores públicos o protegidos no pueden ser heredadas.**
+* La principal limitación de proporcionar sólo métodos estáticos es que **las clases sin constructores públicos o protegidos no pueden ser heredadas**.
 
-* **Otra limitación es que no es fácil detectar estas factorías en la documentación de la clase.** Esto es debido a como funciona la herramienta de Javadoc. Los constructores aparecen en un lugar destacado a diferencia de los métodos. Normalmente, estos métodos suelen seguir ciertas convenciones:
+* Otra limitación es que **no es fácil detectar estas factorías en la documentación de la clase**. Esto es debido a como funciona la herramienta de Javadoc. Los constructores aparecen en un lugar destacado a diferencia de los métodos.
 
-  * **from**: un método _'type-conversion'_ que toma un parámetro y retorna la correspondiente instancia de ese tipo:
+Normalmente, estos métodos suelen seguir ciertas convenciones:
+
+* **from**: un método _'type-conversion'_ que toma un parámetro y retorna la correspondiente instancia de ese tipo:
 
   ```java
   Date d = Date.from(instant);
   ```
 
-  * **of**: un método de agregación que toma múltiples parámetros y devuelve una instancia de ese tipo que los incorpora:
+* **of**: un método de agregación que toma múltiples parámetros y devuelve una instancia de ese tipo que los incorpora:
 
   ```java
   Set<Rank> faceCards = EnumSet.of(JACK, QUEEN, KING);
   ```
 
-  * **valueOf**: una forma más descriptiva de _'from'_ y _'of'_:
+* **valueOf**: una forma más descriptiva de _'from'_ y _'of'_:
 
   ```java
   BigInteger prime = BigInteger.valueOf(Integer.MAX_VALUE);
   ```
 
-  * **instance** or **getInstance**: retorna una instancia que se describe por sus parámetros (si los hay) pero que no puede decirse que tenga el mismo valor:
+* **instance** or **getInstance**: retorna una instancia que se describe por sus parámetros (si los hay) pero que no puede decirse que tenga el mismo valor:
 
   ```java
   StackWalker luke = StackWalker.getInstance(options);
   ```
 
-  * **create** or **newInstance**: como el anterior salvo que esta vez de garantiza que en cada llamada se devuelve una nueva instancia
+* **create** or **newInstance**: como el anterior salvo que esta vez de garantiza que en cada llamada se devuelve una nueva instancia
 
   ```java
   Object newArray = Array.newInstance(classObject, arrayLen);
   ```
 
-  * **getType**: como **getInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
+* **getType**: como **getInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
 
   ```java
   FileStore fs = Files.getFileStore(path);
   ```
 
-  * **newType** como **newInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
+* **newType** como **newInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
 
   ```java
   BufferedReader br = Files.newBufferedReader(path);
   ```
 
-  * **type** una alternativa concisa a **getType** y **newType**:
+* **type** una alternativa concisa a **getType** y **newType**:
 
   ```java
   List<Complaint> litany = Collections.list(legacyLitany);
@@ -109,7 +111,9 @@ Como inconvenientes destacar:
 
 Las factorías estáticas y los constructores comparten una limitación: no se adaptan bien a un gran número de parámetros opcionales.
 
-Tradicionalmente los programadores han usado el patrón _'telescoping constructor'_ en el cual se provee a la clase de un constructor con los parámetros requeridos, otro constructor con uno de los parámetros opcionales, otro con dos y así sucesivamente hasta completar la lista y tener un constructor con todos los opcionales. De esta forma cuando se desea crear una instancia, se utiliza el constructor con la lista de parámetros más corta que contiene todos los parámetros que se desean configurar. Los parámetros que no se utilizan se suele pasar como 0, 'null', etc..
+Tradicionalmente los programadores han usado el patrón **_'telescoping constructor'_** en el cual se provee a la clase de un constructor con los parámetros requeridos, otro constructor con uno de los parámetros opcionales, otro con dos y así sucesivamente hasta completar la lista y tener un constructor con todos los opcionales.
+
+De esta forma cuando se desea crear una instancia, se utiliza el constructor con la lista de parámetros más corta que contiene todos los parámetros que se desean configurar. Los parámetros que no se utilizan se suele pasar como 0, 'null', etc..
 
 ```java
 public class NutritionFacts {
@@ -147,9 +151,9 @@ public class NutritionFacts {
 }
 ```
 
-En resumen, el patrón _'telescoping constructor'_ funciona, pero es difícil escribir código cliente cuando hay muchos parámetros, y es más difícil de leer. Además, es propenso a errores ya que cuanto más extensa es la lista de parámetros mayores probabilidades de equivocarse en el orden de los mismos al invocar un constructor. Si los parámetros son del mismo tipo, el compilador no mostrará ningún error.
+En resumen, el patrón **_'telescoping constructor'_** funciona, pero es difícil escribir código cliente cuando hay muchos parámetros, y es más difícil de leer. Además, es propenso a errores ya que cuanto más extensa es la lista de parámetros mayores probabilidades de equivocarse en el orden de los mismos al invocar un constructor. Si los parámetros son del mismo tipo, el compilador no mostrará ningún error.
 
-Otro patrón que permite trabajar con muchos parámetros opcionales en un constructor es el patrón _'JavaBean'_. En este patrón se invoca un constructor sin parámetros para crear un objeto y luego se invocan los metódos `setters` de cada parámetro tanto requerido como opcional que sea necesario para construir correctamente el objeto:
+Otro patrón que permite trabajar con muchos parámetros opcionales en un constructor es el patrón **_'JavaBean'_**. En este patrón se invoca un constructor sin parámetros para crear un objeto y luego se invocan los metódos `setters` de cada parámetro tanto requerido como opcional que sea necesario para construir correctamente el objeto:
 
 ```java
 NutritionFacts cocaCola = new NutritionFacts();
@@ -160,9 +164,9 @@ cocaCola.setSodium(35);
 cocaCola.setCarbohydrate(27);
 ```
 
-Este patrón es más fácil de leer y mantener pero tiene el inconveniente de que debido a que la construcción se divide en múltiples llamadas, un '_JavaBean'_ puede estar en un estado inconsistente a lo largo de su construcción. La clase no tiene la opción de hacer cumplir la consistencia simplemente comprobando la validez de los parámetros del constructor. Intentar usar un objeto cuando está en un estado inconsistente puede causar fallos que están lejos del código que contiene el fallo y por lo tanto son difíciles de depurar.
+Este patrón es más fácil de leer y mantener pero tiene el inconveniente de que debido a que la construcción se divide en múltiples llamadas, un **_'JavaBean'_** puede estar en un estado inconsistente a lo largo de su construcción. La clase no tiene la opción de hacer cumplir la consistencia simplemente comprobando la validez de los parámetros del constructor. Intentar usar un objeto cuando está en un estado inconsistente puede causar fallos que están lejos del código que contiene el fallo y por lo tanto son difíciles de depurar.
 
-Afortunadamente, existe una tercera alternativa que combina la seguridad _'telescoping constructor'_ con la legibilidad del patrón _'JavaBeans'_. Es una forma del patrón **_'Builder'_** incluido en _"Design Patterns: Elements of Reusable Object-Oriented Software"_.
+Afortunadamente, existe una tercera alternativa que combina la seguridad **_'telescoping constructor'_** con la legibilidad del patrón **_'JavaBeans'_**. Es una forma del patrón **_'Builder'_** incluido en _"Design Patterns: Elements of Reusable Object-Oriented Software"_.
 
 En lugar de hacer el objeto deseado directamente, el cliente llama a un constructor (o fábrica estática) con todos los parámetros requeridos y consigue un objeto **'Builder'**. Luego el cliente llama a los métodos similares a los `setters` en el objeto constructor para establecer cada parámetro opcional de interés. Finalmente, el cliente llama a un método `build()` sin parámetros para generar el objeto, que es típicamente inmutable.
 
@@ -227,17 +231,17 @@ public class NutritionFacts {
 }
 ```
 
-Este código de cliente es fácil de escribir y, lo que es más importante, fácil de leer. La clase es inmutable, y todos los valores por defecto de los parámetros están en un solo lugar. Los métodos `set` del **'Builder'** devuelven al constructor mismo (con `return this`) para que las invocaciones puedan ser encadenadas, resultando en una API fluida. Para detectar parámetros no válidos lo antes posible, podemos verificar la validez de los parámetros en el constructor y los métodos del constructor:
+Este código de cliente es fácil de escribir y, lo que es más importante, fácil de leer. La clase es inmutable, y todos los valores por defecto de los parámetros están en un solo lugar. Los métodos `set` del **'Builder'** devuelven al constructor mismo (con `return this`) para que las invocaciones puedan ser encadenadas, resultando en una API fluida o **_'Fluent API'_**. Para detectar parámetros no válidos lo antes posible, podemos verificar la validez de los parámetros en el constructor y los métodos del constructor:
 
 ```java
 NutritionFacts cocaCola = new NutritionFacts.Builder(240, 8).calories(100).sodium(35).carbohydrate(27).build();
 ```
 
-El patrón **_'Builder'_** simula los parámetros opcionales con nombre que se encuentran en Python, Kotlin o Scala.
+El patrón **_'Builder'_** simula los parámetros opcionales con nombre que se encuentran en otros lenguajes como en Python, Kotlin o Scala.
 
 ### Item 3: Enforce the singleton property with a private constructor or an enum type
 
-Una clase _singleton_ es simplemente una clase que se instancia exactamente una vez. Los _'singletons'_ normalmente representan un objeto sin estado, como una función o un componente del sistema que es intrínsecamente único. Hacer que una clase sea un _'singleton'_ puede dificultar la prueba de sus clientes porque es imposible sustituir una implementación simulada por un _'singleton'_ a menos que implemente una interfaz que sirva como su tipo.
+Una **clase _'singleton'_** es simplemente una clase que **se instancia exactamente una vez**. Los objetos _'singletons'_ normalmente representan un objeto sin estado, como una función o un componente del sistema que es intrínsecamente único. Hacer que una clase sea un _'singleton'_ puede dificultar la prueba de sus clientes porque es imposible sustituir una implementación simulada por un _'singleton'_ a menos que implemente una interfaz que sirva como su tipo.
 
 Hay dos formas comunes de implementar _'singletons'_. Ambos se basan en mantener el constructor privado y exportar un miembro estático público para proporcionar acceso a la única instancia.
 
@@ -246,9 +250,9 @@ En primer lugar, hacer que la variable miembro sea un campo final:
 ```java
 // Singleton with public final field
 public class Elvis {
-    public static final Elvis INSTANCE = new Elvis();
-    private Elvis() { ... }
-    public void leaveTheBuilding() { ... }
+  public static final Elvis INSTANCE = new Elvis();
+  private Elvis() { ... }
+  public void leaveTheBuilding() { ... }
 }
 ```
 
@@ -261,10 +265,10 @@ Una segunda forma es hacer que el miembro público sea un método _'static facto
 ```java
 // Singleton with static factory
 public class Elvis {
-    private static final Elvis INSTANCE = new Elvis();
-    private Elvis() { ... }
-    public static Elvis getInstance() { return INSTANCE; }
-    public void leaveTheBuilding() { ... }
+  private static final Elvis INSTANCE = new Elvis();
+  private Elvis() { ... }
+  public static Elvis getInstance() { return INSTANCE; }
+  public void leaveTheBuilding() { ... }
 }
 ```
 
@@ -284,26 +288,26 @@ Se pueden utilizar para agrupar métodos relacionados en valores primitivos o ar
 
 Tales clases de utilidad no fueron diseñadas para ser instanciadas: una instancia no tendría sentido. Sin embargo, en ausencia de constructores explícitos, el compilador proporciona un constructor público, sin parámetros y predeterminado. Para un usuario, este constructor es indistinguible de cualquier otro.
 
-**Intentar imponer la no instanciabilidad haciendo que la clase sea abstracta no funciona.** Se podría instanciar una subclase. Además, induce a error al usuario al pensar que la clase fue diseñada para herencia.
+**Intentar imponer la no instanciabilidad haciendo que la clase sea abstracta no funciona**. Se podría instanciar una subclase. Además, induce a error al usuario al pensar que la clase fue diseñada para herencia.
 
-Existe, sin embargo, un _'idiom'_ simple para garantizar la no instanciación. Un constructor predeterminado se genera solo si una clase no contiene constructores explícitos, por lo que se puede hacer que una clase no sea instanciable al incluir un constructor privado:
+Existe, sin embargo, un **_'idiom'_** simple para garantizar la no instanciación. Un constructor predeterminado se genera solo si una clase no contiene constructores explícitos, por lo que se puede hacer que una **clase no sea instanciable al incluir un constructor privado**:
 
 ```java
 // Noninstantiable utility class
 public class UtilityClass {
-    // Suppress default constructor for noninstantiability
-    private UtilityClass() {
-        throw new AssertionError();
-    }
-    // ....
+  // Suppress default constructor for noninstantiability
+  private UtilityClass() {
+    throw new AssertionError();
+  }
+  // ....
 }
 ```
 
 Debido a que el constructor explícito es privado, es inaccesible fuera de la clase. El `AssertionError` no se requiere estrictamente, pero proporciona un mecanismo seguro en caso de que el constructor sea invocado accidentalmente desde dentro de la clase. Garantiza que la clase nunca será instanciada bajo ninguna circunstancia.
 
-Este _'idiom'_ es ligeramente contrario a la intuición porque el constructor se proporciona expresamente para que no se pueda invocar. Por lo tanto, es aconsejable incluir un comentario, como se mostró en el ejemplo.
+Este **_'idiom'_** es ligeramente contrario a la intuición porque el constructor se proporciona expresamente para que no se pueda invocar. Por lo tanto, es aconsejable incluir un comentario, como se mostró en el ejemplo.
 
-Como efecto secundario, este _'idiom'_ también evita que la clase sea heredada. Todos los constructores deben invocar un constructor de superclase, explícita o implícitamente, y una subclase no tendría un constructor de superclase accesible para invocar.
+Como efecto secundario, este **_'idiom'_** también evita que la clase sea heredada. Todos los constructores deben invocar un constructor de superclase, explícita o implícitamente, y una subclase no tendría un constructor de superclase accesible para invocar.
 
 ### Item 5: Prefer dependency injection to hardwiring resources
 
@@ -312,50 +316,101 @@ Muchas clases dependen de recursos subyacentes. Por ejemplo, un corrector ortogr
 ```java
 // Inappropriate use of static utility - inflexible & untestable!
 public class SpellChecker {
-    private static final Lexicon dictionary = ...;
-    private SpellChecker() {} // Noninstantiable
-    public static boolean isValid(String word) { ... }
-    public static List<String> suggestions(String typo) { ... }
+  private static final Lexicon dictionary = ...;
+  private SpellChecker() {} // Noninstantiable
+  public static boolean isValid(String word) { ... }
+  public static List<String> suggestions(String typo) { ... }
 }
 ```
 
-Del mismo modo, no es raro verlos implementados como _singletons_ (Item 3):
+Del mismo modo, no es raro verlos implementados como _'singletons'_ (Item 3):
 
 ```java
 // Inappropriate use of singleton - inflexible & untestable!
 public class SpellChecker {
-    private final Lexicon dictionary = ...;
-    private SpellChecker(...) {}
-    public static INSTANCE = new SpellChecker(...);
-    public boolean isValid(String word) { ... }
-    public List<String> suggestions(String typo) { ... }
+  private final Lexicon dictionary = ...;
+  private SpellChecker(...) {}
+  public static INSTANCE = new SpellChecker(...);
+  public boolean isValid(String word) { ... }
+  public List<String> suggestions(String typo) { ... }
 }
 ```
 
 Ninguno de estos enfoques es satisfactorio porque suponen que sólo será útil utilizar un único diccionario. La realidad es que cada idioma tendrá su propio diccionario. Además, a efectos de pruebas puede ser necesario el uso de un diccionario especial.
 
-Puede intentar que `SpellChecker` admita varios diccionarios haciendo que el campo `dictionary` no sea final y agregando un método para cambiar el diccionario en un corrector ortográfico existente, pero esto sería incómodo, propenso a errores e inviable en una configuración concurrente. **Las clases de utilidad estática y los singletons son inapropiados para las clases cuyo comportamiento está parametrizado por un recurso subyacente**.
+Puede intentar que `SpellChecker` admita varios diccionarios haciendo que el campo `dictionary` no sea final y agregando un método para cambiar el diccionario en un corrector ortográfico existente, pero esto sería incómodo, propenso a errores e inviable en una configuración concurrente. **Las clases de utilidad estática y los 'singletons' son inapropiados para las clases cuyo comportamiento está parametrizado por un recurso subyacente**.
 
-Lo que se requiere es la capacidad de admitir varias instancias de la clase (en nuestro ejemplo, `SpellChecker`), cada una de las cuales utilice l recurso deseado por el cliente (en nuestro ejemplo, el diccionario). Un patrón simple que satisface este requisito es **pasar el recurso al constructor al crear una nueva instancia**. Esta es una forma de inyección de dependencia: el diccionario es una dependencia del corrector ortográfico y se inyecta en el corrector ortográfico cuando se crea:
+Lo que se requiere es la capacidad de admitir varias instancias de la clase (en nuestro ejemplo, `SpellChecker`), cada una de las cuales utilice el recurso deseado por el cliente (en nuestro ejemplo, el diccionario). Un patrón simple que satisface este requisito es **pasar el recurso al constructor al crear una nueva instancia**. Esta es una forma de inyección de dependencia: el diccionario es una dependencia del corrector ortográfico y se inyecta en el corrector ortográfico cuando se crea:
 
 ```java
 // Dependency injection provides flexibility and testability
 public class SpellChecker {
-    private final Lexicon dictionary;
-    public SpellChecker(Lexicon dictionary) {
-        this.dictionary = Objects.requireNonNull(dictionary);
-    }
-    public boolean isValid(String word) { ... }
-    public List<String> suggestions(String typo) { ... }
+  private final Lexicon dictionary;
+  public SpellChecker(Lexicon dictionary) {
+    this.dictionary = Objects.requireNonNull(dictionary);
+  }
+  public boolean isValid(String word) { ... }
+  public List<String> suggestions(String typo) { ... }
 }
 ```
 
-En el ejemplo la clase `SpellChecker` sólo tiene un recurso pero la inyección de dependencias funciona con un número arbitrario de recursos. La inyección de dependencias es igualmente aplicable a constructores, factorías estáticas (Item 1) y _builders_ (Item 2).
+En el ejemplo la clase `SpellChecker` sólo tiene un recurso pero la inyección de dependencias funciona con un número arbitrario de recursos. La inyección de dependencias es igualmente aplicable a constructores, factorías estáticas (Item 1) y _'builders'_ (Item 2).
 
 Aunque la inyección de dependencias mejora en gran medida la flexibilidad y la capacidad de prueba, puede saturar grandes proyectos, que generalmente contienen miles de dependencias. Este desorden puede eliminarse utilizando un framework de inyección de dependencias  como [Dagger](https://dagger.dev/), [Guice](https://github.com/google/guice) o [Spring](https://spring.io/).
 
-En resumen, no utilice una clase de utilidad estática o un _singleton_ para implementar una clase que dependa de uno o más recursos subyacentes cuyo comportamiento afecte al de la clase, y no haga que la clase cree estos recursos directamente. En cambio, pase los recursos, o las factorías para crearlos, al constructor (o fábrica estática o _builder_). Esta práctica, conocida como inyección de dependencia, mejorará en gran medida la flexibilidad, la reutilización y la capacidad de prueba de una clase.
+En resumen, no utilice una clase de utilidad estática o un _'singleton'_ para implementar una clase que dependa de uno o más recursos subyacentes cuyo comportamiento afecte al de la clase, y no haga que la clase cree estos recursos directamente. En cambio, pase los recursos, o las factorías para crearlos, al constructor (o _'static factory'_ o _'builder'_). Esta práctica, conocida como inyección de dependencia, mejorará en gran medida la flexibilidad, la reutilización y la capacidad de prueba de una clase.
 
 ### Item 6: Avoid creating unnecessary objects
 
-(todo)
+A menudo conviene reutilizar un mismo objeto en lugar de crear un nuevo objeto funcionalmente equivalente cada vez que se necesita. La reutilización puede ser más rápida y elegante. Un objeto siempre puede reutilizarse si es inmutable (Item 17).
+
+Un ejemplo extremo sería la creación de un `String` utilizando el constructor:
+
+```java
+String s = new String("bikini"); // DON'T DO THIS!
+```
+
+La sentencia crea una nueva instancia de `String` cada vez que se ejecuta, y ninguna de esas creaciones de objetos es necesaria. El argumento del constructor es en sí mismo una instancia de `String`, funcionalmente idéntica a todos los objetos creados por el constructor. Si este uso se produce en un bucle o en un método frecuentemente invocado se crearán millones de instancias de String innecesariamente.
+
+La forma correcta y más simple sería:
+
+```java
+String s = "bikini";
+```
+
+Esta versión utiliza una única instancia de `String`, en lugar de crear una nueva cada vez que es ejecutada como en el caso anterior. Además, se garantiza que el objeto será reutilizado por cualquier otro código que se ejecute en la misma máquina virtual y que por casualidad contenga la misma cadena literal.
+
+A menudo se puede evitar la creación innecesaria de objetos utilizando métodos 'factoría' estáticos o **_'static factory methods'_** (Item 1) preferentemente a utilizar constructores en clases inmutables que proveen de ambos.
+
+Por ejemplo, el método de fábrica estático `Boolean.valueOf(String)` es preferible al constructor `Boolean(String)`, el cual fue marcado como _'deprecated'_ en Java 9. El constructor debe crear un nuevo objeto cada vez que se llama, mientras que el método de fábrica estático nunca está obligado a hacerlo y no lo hará en la práctica. Además de reutilizar objetos inmutables, también se puede reutilizar objetos mutables si se tiene conocimiento de que no se modificarán.
+
+Algunas creaciones de objetos son mucho más caras que otras. Si va a necesitar un "objeto caro" de este tipo repetidamente, puede ser recomendable almacenarlo en caché para reutilizarlo. Desafortunadamente, no siempre es obvio cuándo se crea un objeto de este tipo.
+
+Supongamos un método que determine cuando una cadena es un número romano válido:
+
+```java
+// Performance can be greatly improved!
+static boolean isRomanNumeral(String s) {
+  return s.matches("^(?=.)M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+}
+```
+
+El problema con esta implementación es que se basa en el método `String.matches(...)`. Si bien este método es la forma más sencilla de comprobar si una cadena coincide con una expresión regular, **no es adecuado para su uso repetido en situaciones críticas de rendimiento**. El problema es que crea internamente una instancia de _'Pattern'_ para la expresión regular y la usa solo una vez, después de lo cual se vuelve elegible para la recolección de basura. Crear una instancia de _'Pattern'_ es "caro" porque requiere compilar la expresión regular en una máquina finita de estados.
+
+Para mejorar el rendimiento, compile explícitamente la expresión regular en una instancia de _'Pattern'_ (que es inmutable) como parte de la inicialización de la clase, guárdela en caché y reutilice la misma instancia para cada invocación del método `isRomanNumeral(String s)`:
+
+```java
+// Reusing expensive object for improved performance
+public class RomanNumerals {
+  private static final Pattern ROMAN = Pattern.compile("^(?=.)M*(C[MD]|D?C{0,3})"
+      + "(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+  
+  static boolean isRomanNumeral(String s) {
+    return ROMAN.matcher(s).matches();
+  }
+}
+```
+
+Esta versión mejorada del método provee una ganancia significativa a nivel de eficiencia y rendimiento si se invoca repetidamente. Y no solamente rendimiento, si no que también gana en claridad. Crear un campo final estático para la instancia de _'Pattern'_ que de otro modo sería invisible  permite darle un nombre, que es mucho más legible que la propia expresión regular.
+
+Por otro lado, si la clase que contiene la versión mejorada del método `isRomanNumeral(String s)` se inicializa pero el método nunca se invoca, el campo `ROMAN` con el patrón compilado se inicializará innecesariamente. Sería posible eliminar esta inicialización inicializando de forma diferida el campo (Item 83) la primera vez que se invoca el método `isRomanNumeral(String s)`, pero esto no se recomienda. Como suele ser el caso con la inicialización diferida, complicaría la implementación sin una mejora mensurable del rendimiento (Item 67).
