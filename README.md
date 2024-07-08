@@ -2,14 +2,6 @@
 
 ... EN DESARROLLO ...
 
-<!-- markdownlint-disable MD033 -->
-<p align="center">
-  <a href="https://alxgcrz.com" target="_blank">
-    <img src="https://alxgcrz.com/assets/asset_03_v1.png" alt="En desarrollo" title="En desarrollo" width="40%">
-  </a>
-</p>
-<!-- markdownlint-enable MD033 -->
-
 ## Introducción
 
 **"Effective Java"** es un influyente libro escrito por **Joshua Bloch**, un reconocido ingeniero de software que ha desempeñado un papel fundamental en el desarrollo de la plataforma Java. Publicado por primera vez en **2001** y posteriormente actualizado para reflejar las versiones más recientes del lenguaje, "Effective Java" se ha convertido en un recurso invaluable para desarrolladores Java de todos los niveles de experiencia.
