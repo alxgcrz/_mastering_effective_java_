@@ -1,6 +1,6 @@
 # Mastering 'Effective Java'
 
-... EN DESARROLLO ...
+> :warning: **DOCUMENTO EN DESARROLLO** :warning:
 
 ## Introducción
 
