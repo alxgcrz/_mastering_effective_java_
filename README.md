@@ -33,67 +33,67 @@ No es incompatible que una clase suministre _'static factory methods'_ además d
 
 El uso de estos métodos estáticos como factoría tiene ventajas:
 
-* Una ventaja es que, a diferencia de los constructores, estos **métodos tienen nombres**. Podemos elegir nombres que sean mucho más descriptivos que los constructores.
+- Una ventaja es que, a diferencia de los constructores, estos **métodos tienen nombres**. Podemos elegir nombres que sean mucho más descriptivos que los constructores.
 
-* Una segunda ventaja es que, a diferencia de los constructores, **no tienen que crear un nuevo objeto cada vez que se les invoca**. Esto permite clases inmutables que retornen instancias ya creadas, mejorando el rendimiento ya que podemos evitar la creación de nuevos objetos.
+- Una segunda ventaja es que, a diferencia de los constructores, **no tienen que crear un nuevo objeto cada vez que se les invoca**. Esto permite clases inmutables que retornen instancias ya creadas, mejorando el rendimiento ya que podemos evitar la creación de nuevos objetos.
 
-* Una tercera ventaja es que, a diferencia de los constructores, estos métodos **pueden devolver un objeto de cualquier subtipo de su tipo de devolución**. Esto da una gran flexibilidad para elegir la clase del objeto devuelto.
+- Una tercera ventaja es que, a diferencia de los constructores, estos métodos **pueden devolver un objeto de cualquier subtipo de su tipo de devolución**. Esto da una gran flexibilidad para elegir la clase del objeto devuelto.
 
-* Una cuarta ventaja de las fábricas estáticas es que **la clase del objeto devuelto puede variar de una llamada a otra en función de los parámetros de entrada**. Se permite cualquier subtipo del tipo de retorno declarado. La clase del objeto devuelto también puede variar de una liberación a otra.
+- Una cuarta ventaja de las fábricas estáticas es que **la clase del objeto devuelto puede variar de una llamada a otra en función de los parámetros de entrada**. Se permite cualquier subtipo del tipo de retorno declarado. La clase del objeto devuelto también puede variar de una liberación a otra.
 
-* Una quinta ventaja de las fábricas estáticas es que **la clase del objeto devuelto no necesita existir cuando se escribe la clase que contiene el método**.
+- Una quinta ventaja de las fábricas estáticas es que **la clase del objeto devuelto no necesita existir cuando se escribe la clase que contiene el método**.
 
 Como inconvenientes destacar:
 
-* La principal limitación de proporcionar sólo métodos estáticos es que **las clases sin constructores públicos o protegidos no pueden ser heredadas**.
+- La principal limitación de proporcionar sólo métodos estáticos es que **las clases sin constructores públicos o protegidos no pueden ser heredadas**.
 
-* Otra limitación es que **no es fácil detectar estas factorías en la documentación de la clase**. Esto es debido a como funciona la herramienta de Javadoc. Los constructores aparecen en un lugar destacado a diferencia de los métodos.
+- Otra limitación es que **no es fácil detectar estas factorías en la documentación de la clase**. Esto es debido a como funciona la herramienta de Javadoc. Los constructores aparecen en un lugar destacado a diferencia de los métodos.
 
 Normalmente, estos métodos suelen seguir ciertas convenciones:
 
-* **from**: un método _'type-conversion'_ que toma un parámetro y retorna la correspondiente instancia de ese tipo:
+- **from**: un método _'type-conversion'_ que toma un parámetro y retorna la correspondiente instancia de ese tipo:
 
   ```java
   Date d = Date.from(instant);
   ```
 
-* **of**: un método de agregación que toma múltiples parámetros y devuelve una instancia de ese tipo que los incorpora:
+- **of**: un método de agregación que toma múltiples parámetros y devuelve una instancia de ese tipo que los incorpora:
 
   ```java
   Set<Rank> faceCards = EnumSet.of(JACK, QUEEN, KING);
   ```
 
-* **valueOf**: una forma más descriptiva de _'from'_ y _'of'_:
+- **valueOf**: una forma más descriptiva de _'from'_ y _'of'_:
 
   ```java
   BigInteger prime = BigInteger.valueOf(Integer.MAX_VALUE);
   ```
 
-* **instance** or **getInstance**: retorna una instancia que se describe por sus parámetros (si los hay) pero que no puede decirse que tenga el mismo valor:
+- **instance** or **getInstance**: retorna una instancia que se describe por sus parámetros (si los hay) pero que no puede decirse que tenga el mismo valor:
 
   ```java
   StackWalker luke = StackWalker.getInstance(options);
   ```
 
-* **create** or **newInstance**: como el anterior salvo que esta vez de garantiza que en cada llamada se devuelve una nueva instancia
+- **create** or **newInstance**: como el anterior salvo que esta vez de garantiza que en cada llamada se devuelve una nueva instancia
 
   ```java
   Object newArray = Array.newInstance(classObject, arrayLen);
   ```
 
-* **getType**: como **getInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
+- **getType**: como **getInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
 
   ```java
   FileStore fs = Files.getFileStore(path);
   ```
 
-* **newType** como **newInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
+- **newType** como **newInstance**, pero se usa si el método de fábrica está en una clase diferente. _'Type'_ es el tipo de objeto devuelto por el método de fábrica:
 
   ```java
   BufferedReader br = Files.newBufferedReader(path);
   ```
 
-* **type** una alternativa concisa a **getType** y **newType**:
+- **type** una alternativa concisa a **getType** y **newType**:
 
   ```java
   List<Complaint> litany = Collections.list(legacyLitany);
@@ -406,3 +406,98 @@ public class RomanNumerals {
 Esta versión mejorada del método provee una ganancia significativa a nivel de eficiencia y rendimiento si se invoca repetidamente. Y no solamente rendimiento, si no que también gana en claridad. Crear un campo final estático para la instancia de _'Pattern'_ que de otro modo sería invisible  permite darle un nombre, que es mucho más legible que la propia expresión regular.
 
 Por otro lado, si la clase que contiene la versión mejorada del método `isRomanNumeral(String s)` se inicializa pero el método nunca se invoca, el campo `ROMAN` con el patrón compilado se inicializará innecesariamente. Sería posible eliminar esta inicialización inicializando de forma diferida el campo (Item 83) la primera vez que se invoca el método `isRomanNumeral(String s)`, pero esto no se recomienda. Como suele ser el caso con la inicialización diferida, complicaría la implementación sin una mejora mensurable del rendimiento (Item 67).
+
+### Item 7: Eliminate obsolete object references
+
+Si has cambiado de un lenguaje con gestión manual de memoria, como C o C++, a un lenguaje con recolección de basura, como Java, tu trabajo como programador se ha vuelto mucho más sencillo gracias a que los objetos se recuperan automáticamente cuando ya no se necesitan.  
+
+Al principio, esto puede parecer casi mágico. Sin embargo, esto puede llevar fácilmente a la errónea impresión de que no es necesario preocuparse por la gestión de memoria.
+
+En el ejemplo tenemos una implementación de una **Pila**:
+
+```java
+public class Stack {
+  private Object[] elements;
+  private int size = 0;
+  private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+  public Stack() {
+    elements = new Object[DEFAULT_INITIAL_CAPACITY];
+  }
+
+  public void push(Object e) {
+    ensureCapacity();
+    elements[size++] = e;
+  }
+
+  public Object pop() {
+    if (size == 0) {
+      throw new EmptyStackException();
+    }
+    return elements[--size];
+  }
+
+  private void ensureCapacity() {
+    if (elements.length == size) {
+      elements = Arrays.copyOf(elements, 2 * size + 1);
+    }
+  }
+}
+```
+
+No hay nada aparentemente incorrecto en este programa. Se podría someter a pruebas exhaustivas, y pasaría todas con éxito, pero hay un problema oculto. En términos generales, el programa tiene una **fuga de memoria** (**_"memory leak"_**), que puede manifestarse silenciosamente como una reducción del rendimiento debido a una mayor actividad del recolector de basura o un aumento en el consumo de memoria. En casos extremos, este tipo de fugas pueden provocar paginación en disco e incluso fallos del programa con un `OutOfMemoryError`, aunque estos fallos son relativamente raros.
+
+Entonces, ¿dónde está la fuga de memoria? Si una pila (_"stack"_) crece y luego se reduce, los objetos que fueron eliminados (_"popped off"_) de la pila no serán recolectados por el recolector de basura, incluso si el programa que usa la pila ya no tiene referencias a ellos. Esto ocurre porque la pila mantiene referencias obsoletas a estos objetos.
+
+Una **referencia obsoleta** es simplemente una referencia que nunca volverá a ser utilizada. En este caso, cualquier referencia fuera de la "porción activa" del arreglo de elementos es obsoleta. La porción activa está compuesta por los elementos cuyo índice es menor que `size`.
+
+Las fugas de memoria en lenguajes con recolección de basura (más propiamente conocidas como **retenciones involuntarias de objetos**) son difíciles de detectar. Si una referencia a un objeto se mantiene accidentalmente, **no solo ese objeto queda excluido de la recolección de basura**, sino también todos los objetos referenciados por él, y así sucesivamente. Incluso si solo se retienen unas pocas referencias de manera involuntaria, **pueden impedir la recolección de una gran cantidad de objetos**, afectando significativamente el rendimiento.  
+
+La solución a este tipo de problema es sencilla: **asignar `null` a las referencias una vez que se vuelven obsoletas**. En el caso de nuestra clase `Stack`, la referencia a un elemento **se vuelve obsoleta tan pronto como se extrae de la pila**. La versión corregida del método `pop` se ve así:  
+
+```java
+public Object pop() {
+  if (size == 0) {
+    throw new EmptyStackException();
+  }
+  Object result = elements[--size];
+  elements[size] = null; // Eliminate obsolete reference
+  return result;
+}
+```
+
+Un beneficio adicional de asignar `null` a las referencias obsoletas es que, si luego se intentan utilizar por error, el programa **fallará de inmediato con una `NullPointerException`**, en lugar de comportarse de manera incorrecta de forma silenciosa.
+
+> :point_right: **Siempre es mejor detectar los errores de programación lo antes posible**.  
+
+Cuando los programadores se encuentran por primera vez con este problema, pueden reaccionar de forma exagerada, asignando `null` a cada referencia de objeto en cuanto dejan de usarla. Esto no solo es innecesario, sino también poco recomendable, ya que **ensucia el código** sin aportar beneficios reales. **Asignar `null` a referencias debería ser la excepción, no la norma**.  
+
+La mejor forma de eliminar una referencia obsoleta es permitir que la variable que la contiene **salga naturalmente de su ámbito** (_"scope"_). Esto sucede automáticamente si se define **cada variable en el ámbito más reducido posible**.
+
+Entonces, ¿cuándo se debería asignar `null` a una referencia? ¿Qué aspecto de la clase `Stack` la hace susceptible a fugas de memoria? En pocas palabras, **gestiona su propia memoria**.  
+
+El pool de almacenamiento está compuesto por los elementos del array `elements` (es decir, las celdas que contienen referencias a objetos, no los objetos en sí). Los elementos en la **porción activa** del array (como se definió anteriormente) están en uso, mientras que el resto están libres.  
+
+El **recolector de basura no tiene forma de saber esto**; para él, todas las referencias de `elements` son igualmente válidas. Solo el programador sabe que la porción inactiva del array es irrelevante. Para informar esto al recolector de basura, el programador debe **asignar `null` manualmente a los elementos del array en cuanto pasen a formar parte de la porción inactiva**.
+
+En términos generales, **si una clase gestiona su propia memoria, el programador debe estar atento a posibles fugas de memoria**. Cada vez que se libere un elemento, cualquier referencia a objetos contenida en él debe ser asignada a `null`.
+
+Otra fuente común de fugas de memoria son los **cachés**. Una vez que se agrega una referencia a un objeto en un caché, es fácil olvidarse de que está ahí y **dejarla almacenada mucho después de que se haya vuelto irrelevante**.  
+
+Existen varias soluciones para este problema. En el caso de una caché en el que una entrada **debe permanecer mientras haya referencias a su clave fuera del caché**, se puede representarlo con un `WeakHashMap`. En este caso, las entradas **se eliminarán automáticamente cuando se vuelvan obsoletas**. Sin embargo, un `WeakHashMap` solo es útil si la duración de una entrada en caché está determinada por referencias externas a la clave, y no al valor.  
+
+Más comúnmente, la vida útil de una entrada en caché **no está tan claramente definida**, y su importancia disminuye con el tiempo. En estos casos, el caché **debe limpiarse periódicamente** para eliminar las entradas en desuso. Esto se puede hacer de dos maneras:  
+
+- Mediante un hilo en segundo plano, como un `ScheduledThreadPoolExecutor`.  
+
+- Como un efecto colateral al agregar nuevas entradas**. La clase `LinkedHashMap` facilita este enfoque con su método `removeEldestEntry`.  
+
+Una tercera fuente común de fugas de memoria son los **_listeners_ y otros _callbacks_**. En una API en la que los clientes **registran _callbacks_ pero no los desregistran explícitamente**, estos se acumularán a menos que se tomen medidas para evitarlos. Una forma de asegurarse de que los _callbacks_ sean recolectados por el recolector de basura a tiempo es **almacenarlos solo como referencias débiles**, por ejemplo, usándolos como claves en un `WeakHashMap`.  
+
+Dado que las fugas de memoria no suelen manifestarse como fallos evidentes, pueden permanecer en un sistema durante años sin ser detectadas. Normalmente, solo se descubren mediante una **inspección minuciosa del código** o con la ayuda de una herramienta de depuración conocida como **_"heap profiler"_**.  
+
+Existen herramientas para el análisis de memoria como [Eclipse Memory Analyzer (MAT)](https://eclipse.dev/mat/) de la Eclipse Foundation o herramientas propias de la JDK como [Java VisualVM](https://visualvm.github.io/) (sin embargo, a partir de Java 9, las distribuciones JDK ya no se envían con Java VisualVM), **JConsole** o [Java Flight Recorder (JFR)](https://www.oracle.com/java/technologies/jdk-mission-control.html).
+
+### Item 8: Avoid finalizers and cleaners
+
+TODO
