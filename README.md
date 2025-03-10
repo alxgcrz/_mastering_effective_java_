@@ -500,4 +500,50 @@ Existen herramientas para el análisis de memoria como [Eclipse Memory Analyzer 
 
 ### Item 8: Avoid finalizers and cleaners
 
+Los **_"finalizers"_** son impredecibles, a menudo peligrosos y, en general, innecesarios. Su uso puede provocar comportamientos erráticos, bajo rendimiento y problemas de portabilidad. Existen algunos casos en los que su uso es válido, pero como regla general, se deberían evitar.
+
+A partir de Java 9, los _"finalizers"_ han sido desaprobados (_deprecated_), aunque todavía se usan en algunas bibliotecas de Java. Su reemplazo en Java 9 son los **_"cleaners"_**. Los _"cleaners"_ son menos peligrosos que los _"finalizers"_, pero siguen siendo impredecibles, lentos y, en general, innecesarios.
+
+Los programadores de C++ deben tener cuidado de no considerar los _"finalizers"_ o _"cleaners"_ como el equivalente en Java de los destructores de C++. En C++, los destructores son el mecanismo estándar para liberar los recursos asociados a un objeto, funcionando como complemento necesario de los constructores. En Java, en cambio, el recolector de basura se encarga de liberar la memoria automáticamente cuando un objeto se vuelve inaccesible, sin necesidad de que el programador haga nada especial.
+
+Los destructores en C++ también se utilizan para liberar otros recursos no relacionados con la memoria. En Java, este propósito se logra mediante bloques `try-with-resources` o `try-finally`.
+
+Uno de los grandes inconvenientes de los _"finalizers"_ y _"cleaners"_ es que no hay garantía de que se ejecuten de inmediato. Puede pasar un tiempo arbitrario desde que un objeto se vuelve inaccesible hasta que el método se ejecute. Esto significa que **nunca se debe realizar operaciones críticas en tiempo dentro de un _"finalizer"_ o _"cleaner"_**. Por ejemplo, depender de estos métodos para cerrar archivos es un grave error, ya que los descriptores de archivos son un recurso limitado. Si el sistema tarda demasiado en ejecutar los _"finalizers"_ o _"cleaners"_, un programa podría fallar por no poder abrir más archivos.
+
+La rapidez con la que se ejecutan los _"finalizers"_ y _"cleaners"_ depende del algoritmo de recolección de basura, que varía entre distintas implementaciones de la JVM. Por lo tanto, un programa que dependa de la ejecución rápida de estos métodos podría funcionar perfectamente en una JVM durante las pruebas, pero fallar catastróficamente en otra JVM.
+
+La finalización tardía no es solo un problema teórico. Proporcionar un _"finalizer"_ para una clase puede retrasar arbitrariamente la recolección de sus instancias. La especificación del lenguaje no garantiza qué hilo ejecutará los _"finalizers"_. El hilo encargado de ejecutar los _"finalizers"_ pueden estar corriendo con una prioridad más baja que otro hilo de la aplicación, lo que puede provocar que los objetos no se finalicen con la rapidez que necesita la aplicación, pudiendo provocar errores de tipo `OutOfMemoryError`.
+
+Los _"cleaners"_ son una ligera mejora en este aspecto, ya que los autores de una clase pueden controlar sus propios hilos de limpieza. Sin embargo, los _"cleaners"_ siguen ejecutándose en segundo plano, bajo el control del 'Recolector de Basura', por lo que tampoco garantizan una limpieza inmediata.
+
+La especificación no solo no garantiza que los _"finalizers"_ o _"cleaners"_ se ejecuten de manera rápida, sino que **tampoco garantiza que se ejecuten en absoluto**. Es totalmente posible, e incluso probable, que un programa termine sin haber ejecutado los _"finalizers"_ o _"cleaners"_ en algunos objetos que ya no son accesibles. Como consecuencia, **nunca se debe depender de un _"finalizer"_ o _"cleaner"_ para actualizar un estado persistente**. Por ejemplo, confiar en uno de estos métodos para liberar un bloqueo persistente sobre un recurso compartido, como una base de datos, **es una receta segura para paralizar por completo un sistema distribuido**.  
+
+No hay que dejarse engañar por los métodos `System.gc()` y `System.runFinalization()`. Aunque pueden aumentar la probabilidad de que los _"finalizers"_ o _"cleaners"_ se ejecuten, **no lo garantizan**. Hubo dos métodos que en su momento afirmaban hacer esta garantía. Sin embargo, son métodos son **fatalmente defectuosos y han estado obsoletos durante décadas**:  
+
+- `System.runFinalizersOnExit()`  
+
+- `Runtime.runFinalizersOnExit()` (su "gemelo malvado")  
+
+Otro problema con los _"finalizers"_ es que si se lanza una **excepción no capturada** durante la finalización, esta será **ignorada**, y la finalización de ese objeto **se interrumpirá**. Las excepciones no capturadas pueden dejar otros objetos en un estado corrupto. Si otro hilo intenta usar un objeto en este estado, el comportamiento resultante puede ser arbitrario e impredecible. Normalmente, una excepción no capturada **terminará el hilo y mostrará un _stack trace_**, pero esto no ocurre en un _"finalizer"_, ya que **ni siquiera imprimirá una advertencia**.  
+
+Los _"cleaners"_ no tienen este problema, ya que una biblioteca que use un cleaner **puede controlar el hilo en el que se ejecuta**.
+
+Los _"finalizers"_ tienen un **grave problema de seguridad**: abren la puerta a **_"finalizer attacks"_**. La idea detrás de este ataque es simple. Si se lanza una excepción desde un constructor o sus equivalentes en la serialización —los métodos `readObject` y `readResolve`, el _"finalizer"_ de una subclase maliciosa puede ejecutarse sobre el objeto parcialmente construido que debería haberse "muerto en el proceso". Este _"finalizer"_ puede guardar una referencia al objeto en un campo estático, evitando que sea recolectado por el _"Garbage Collector"_. Una vez que el objeto malformado ha sido registrado, es cuestión de invocar métodos arbitrarios sobre este objeto, que no deberían haber existido en primer lugar.
+
+Lanzar una excepción desde un constructor debería ser suficiente para evitar que un objeto entre en existencia; sin embargo, en presencia de _"finalizers"_, no lo es. Este tipo de ataques puede tener consecuencias graves. Las clases finales son inmunes a los ataques de _"finalizers"_, porque nadie puede escribir una subclase maliciosa de una clase final. Para proteger las clases no finales de estos ataques, **escribe un método `finalize()` final que no haga nada**.
+
+Entonces, ¿qué se debe hacer en lugar de escribir un _"finalizer"_ o _"cleaner"_ para una clase cuyos objetos encapsulan recursos que requieren terminación, como archivos o hilos? Simplemente hacer que la clase implemente `AutoCloseable` y **requerir que los clientes invoquen el método `close`** en cada instancia cuando ya no sea necesaria, típicamente usando `try-with-resources` para garantizar la terminación incluso en caso de excepciones.  
+
+Un detalle importante es que la instancia debe llevar un registro de si ha sido cerrada: el método `close` debe **registrar en un campo** que el objeto ya no es válido, y otros métodos deben verificar este campo y lanzar una `IllegalStateException` si se llaman después de que el objeto haya sido cerrado.
+
+Los _"finalizers"_ y _"cleaners"_ pueden tener algunos usos legítimos, aunque son limitados.
+
+Como red de seguridad para liberar recursos olvidados. Si un recurso no es cerrado correctamente por el programador (por ejemplo, el cliente olvida llamar a `close()` en un recurso como un archivo o una conexión), estos métodos pueden ayudar a liberar ese recurso tarde, en lugar de no liberarlo en absoluto. Sin embargo, debido a la falta de garantías sobre cuándo o si se ejecutarán, esto no debería ser la solución principal. Algunas clases de bibliotecas de Java, como `FileInputStream`, `FileOutputStream`, `ThreadPoolExecutor` y `java.sql.Connection`, los utilizan como una red de seguridad en caso de que el cliente olvide cerrar el recurso.
+
+El otro uso son con objetos con pares nativos. En Java, un par nativo es un objeto que interactúa con código nativo a través de métodos `native`. Estos objetos nativos no son gestionados por el recolector de basura de Java, por lo que, si el objeto Java asociado es reclamado, el recolector no podrá liberar el par nativo. En este caso, un _"finalizer"_ o un _"cleaner"_ puede servir para liberar estos pares nativos cuando el objeto Java asociado ya no sea necesario. No obstante, este enfoque solo es adecuado si el rendimiento es aceptable y si el par nativo no contiene recursos críticos que deban ser liberados de inmediato. En caso contrario, debería usarse un método `close()` para asegurar la liberación inmediata de recursos.
+
+En resumen, no se debe utilizar _"cleaners"_ ni _"finalizers"_ (en versiones anteriores a Java 9), excepto como red de seguridad o para terminar recursos nativos no críticos. Incluso en estos casos, hay que tener en cuenta la indeterminación y las consecuencias de rendimiento.
+
+### Item 9: Prefer try-with-resources to try-finally
+
 TODO
