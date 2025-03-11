@@ -546,4 +546,96 @@ En resumen, no se debe utilizar _"cleaners"_ ni _"finalizers"_ (en versiones ant
 
 ### Item 9: Prefer try-with-resources to try-finally
 
+Las bibliotecas de Java incluyen muchos recursos que deben cerrarse manualmente invocando un método `close()`. Ejemplos de estos recursos incluyen `InputStream`, `OutputStream` y `java.sql.Connection`. El cierre de estos recursos a menudo se pasa por alto por parte de los clientes, lo que tiene consecuencias de rendimiento previsiblemente graves. Aunque muchos de estos recursos utilizan _"finalizers"_ como red de seguridad, estos no funcionan muy bien.
+
+Históricamente, una declaración `try-finally` era la mejor manera de garantizar que un recurso se cerrara correctamente, incluso en caso de una excepción o un retorno:
+
+```java
+// try-finally - No longer the best way to close resources!
+static String firstLineOfFile(String path) throws IOException {
+  BufferedReader br = new BufferedReader(new FileReader(path));
+  try {
+    return br.readLine();
+  } finally {
+    br.close();
+  }
+}
+```
+
+Esto no parece malo, pero empeora cuando se agrega un segundo recurso:
+
+```java
+// try-finally is ugly when used with more than one resource!
+static void copy(String src, String dst) throws IOException {
+  InputStream in = new FileInputStream(src);
+  try {
+    OutputStream out = new FileOutputStream(dst);
+    try {
+      byte[] buf = new byte[BUFFER_SIZE];
+      int n;
+      while ((n = in.read(buf)) >= 0) {
+        out.write(buf, 0, n);
+      }
+    } finally {
+      out.close();
+    }
+  } finally {
+    in.close();
+  }
+}
+```
+
+Incluso el código correcto para cerrar recursos con sentencias `try-finally`, como se ilustra en los dos ejemplos de código anteriores, tiene una deficiencia sutil. Tanto el código dentro del bloque `try` como el del bloque `finally` pueden lanzar excepciones. Por ejemplo, en el método `firstLineOfFile`, la llamada a `readLine` podría lanzar una excepción debido a un fallo en el dispositivo físico subyacente, y la llamada a `close` podría fallar por la misma razón. En estas circunstancias, la segunda excepción eclipsa por completo a la primera. No hay ningún registro de la primera excepción en el seguimiento de la pila de excepciones, lo que puede complicar enormemente la depuración en sistemas reales; generalmente, es la primera excepción la que quieres ver para diagnosticar el problema. Aunque es posible escribir código para suprimir la segunda excepción en favor de la primera, prácticamente nadie lo hacía porque resulta demasiado verboso.
+
+Todos estos problemas se resolvieron de una vez cuando Java 7 introdujo la sentencia `try-with-resources`. Para ser compatible con esta construcción, un recurso debe implementar la interfaz `AutoCloseable`, que consiste en un único método `close()` que no devuelve ningún valor (_void_). Muchas clases e interfaces en las bibliotecas de Java y en bibliotecas de terceros ahora implementan o extienden `AutoCloseable`.
+
+Aquí se muestra cómo se vería un ejemplo usando `try-with-resources`:
+
+```java
+// try-with-resources - the the best way to close resources!
+static String firstLineOfFile(String path) throws IOException {
+  try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    return br.readLine();
+  }
+}
+```
+
+No es necesario un bloque `finally` para cerrar el recurso, ya que `try-with-resources` se asegura de que el recurso se cierre automáticamente al final del bloque `try`, incluso si se lanza una excepción. Si ocurren excepciones tanto en el bloque `try` como durante el cierre del recurso, la excepción del bloque `try` tiene prioridad, y la excepción del cierre se suprime (pero no se pierde, ya que se puede acceder a ella mediante la excepción primaria).
+
+Otro ejemplo con `try-with-resources`:
+
+```java
+// try-with-resources on multiple resources - short and sweet
+static void copy(String src, String dst) throws IOException {
+  try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(dst)) {
+    byte[] buf = new byte[BUFFER_SIZE];
+    int n;
+    while ((n = in.read(buf)) >= 0) {
+      out.write(buf, 0, n);
+    }
+  }
+}
+```
+
+No solo las versiones con `try-with-resources` son más cortas y legibles que las originales, sino que también proporcionan diagnósticos mucho mejores. Considera el método `firstLineOfFile(...)`. Si se lanzan excepciones tanto en la llamada a `readLine()` como en el `close()` (invisible) del recurso, la segunda excepción se suprime en favor de la primera. De hecho, se pueden suprimir múltiples excepciones para preservar la excepción que realmente deseas ver. Estas excepciones suprimidas no se descartan simplemente; se imprimen en el seguimiento de la pila con una notación que indica que fueron suprimidas. También puedes acceder a ellas de manera programática mediante el método `getSuppressed`, que se añadió a la clase `Throwable` en Java 7.
+
+Se pueden agregar cláusulas `catch` a las sentencias `try-with-resources`, al igual que se haría con las sentencias `try-finally` regulares. Esto permite manejar excepciones sin ensuciar el código con otra capa de anidamiento. Como un ejemplo un poco artificial, aquí hay una versión del método `firstLineOfFile(...)` que no lanza excepciones, sino que toma un valor predeterminado para devolver en caso de que no pueda abrir el archivo o leer de él:
+
+```java
+// try-with-resources with a catch clause
+static String firstLineOfFile(String path, String defaultVal) {
+  try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    return br.readLine();
+  } catch (IOException e) {
+    return defaultVal;
+  }
+}
+```
+
+La lección es clara, **usar siempre `try-with-resources` en lugar de `try-finally` cuando se trabaje con recursos que deban cerrarse**. El código resultante es más corto, más claro y las excepciones que genera son más útiles. La sentencia `try-with-resources` facilita la escritura de código correcto al utilizar recursos que deben cerrarse, algo que era prácticamente imposible de lograr con `try-finally`.
+
+## Methods Common to All Objects
+
+### Item 10: Obey the general contract when overriding `equals`
+
 TODO
